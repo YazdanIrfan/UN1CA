@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -18,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [a34x, a52sxq, a73xq, b0q, g0q, m52xq, o1s, p3s, r0q, r9s, t2s]
+        target: [a34x]
 
     steps:
       - name: Checkout repo
@@ -80,4 +83,28 @@ jobs:
       - name: Build ROM
         run: |
           source ./buildenv.sh ${{ matrix.target }}
-          ./scripts/make_rom.sh
+          ./scripts/make_rom.sh -z
+
+      - name: Find ROM ZIP
+        id: rom
+        run: |
+          ZIP=$(find out -type f -name "*.zip" ! -name "*target_files*" | head -n 1)
+
+          if [ -z "$ZIP" ]; then
+            echo "No flashable ZIP found!"
+            exit 1
+          fi
+
+          BASENAME=$(basename "$ZIP" .zip)
+
+          echo "zip=$ZIP" >> $GITHUB_OUTPUT
+          echo "name=$BASENAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.rom.outputs.name }}
+          name: ${{ steps.rom.outputs.name }}
+          files: ${{ steps.rom.outputs.zip }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

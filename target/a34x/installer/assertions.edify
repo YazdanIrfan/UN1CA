@@ -13,3 +13,7 @@ endif;
 if (getprop("ro.boot.em.model") == "SM-A346M" && getprop("ro.boot.bootloader") != "A346MUBSBDYI1") then
 abort ("E3003: This package requires the \"A346MUBSBDYI1\" firmware installed on your device; you have \"" + getprop("ro.bootloader") + "\"");
 endif;
+
+if (getprop("ro.boot.em.model") == "SM-A346N" && getprop("ro.boot.bootloader") != "A346NKSSADYG1") then
+abort ("E3003: This package requires the \"A346MUBSBDYI1\" firmware installed on your device; you have \"" + getprop("ro.bootloader") + "\"");
+endif;
